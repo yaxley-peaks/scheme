@@ -11,11 +11,22 @@ spaces :: Parser ()
 spaces = skipMany1 space
 
 parseString :: Parser LispVal
-parseString = do
-  char '"'
-  x <- many (noneOf "\"")
-  char '"'
-  return $ String x
+parseString =
+  let escapedChars = do
+        char '\\'
+        x <- oneOf "\\\"ntr"
+        case x of
+          '\\' -> do return [x]
+          '"' -> do return [x]
+          't' -> do return "\t"
+          'n' -> do return "\n"
+          'r' -> do return "\r"
+          _ -> do return ""
+   in do
+        char '"'
+        x <- many (noneOf "\"\\") <|> escapedChars
+        char '"'
+        return $ String x
 
 parseAtom :: Parser LispVal
 parseAtom = do
@@ -31,7 +42,7 @@ parseNumber :: Parser LispVal
 parseNumber = Number . read <$> many1 digit
 
 parseExpr :: Parser LispVal
-parseExpr = parseAtom <|> parseString
+parseExpr = parseAtom <|> parseString <|> parseNumber
 
 readExpr :: String -> String
 readExpr input = case parse parseExpr "lisp" input of --lisp is just the name
