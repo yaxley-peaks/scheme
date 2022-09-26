@@ -3,7 +3,7 @@
 module Error where
 
 import Control.Monad.Error
-import Data (LispVal)
+import Data (LispVal, unwordsList)
 import Text.Parsec (ParseError)
 
 data LispError
@@ -14,4 +14,30 @@ data LispError
   | NotFunction String String
   | UnboundVar String String
   | Default String
+
+showError :: LispError -> String
+showError (UnboundVar message varname) = message ++ ": " ++ varname
+showError (BadSpecialForm message form) = message ++ ": " ++ show form
+showError (NotFunction message func) = message ++ ": " ++ show func
+showError (NumArgs expected found) =
+  "Expected " ++ show expected
+    ++ " args; found values "
+    ++ unwordsList found
+showError (TypeMismatch expected found) =
+  "Invalid type: expected " ++ expected
+    ++ ", found "
+    ++ show found
+showError (Parser parseErr) = "Parse error at " ++ show parseErr
+showError _ = undefined
+
+instance Show LispError where show = showError
+
+instance Error LispError where
+  noMsg = Default "An error has occured"
+  strMsg = Default
+
+type ThrowsError = Either LispError
+
+trapError :: (MonadError a m, Show a) => m String -> m String
+trapError action = catchError action (return . show)
 
