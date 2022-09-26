@@ -28,15 +28,6 @@ parseString =
         char '"'
         return $ String x
 
-parseList :: Parser LispVal
-parseList = List <$> sepBy parseExpr spaces
-
-parseDottedList :: Parser LispVal
-parseDottedList = do
-  head <- endBy parseExpr spaces
-  tail <- char '.' >> spaces >> parseExpr
-  return $ DottedList head tail
-
 parseAtom :: Parser LispVal
 parseAtom = do
   first <- letter <|> symbol
@@ -49,6 +40,15 @@ parseAtom = do
 
 parseNumber :: Parser LispVal
 parseNumber = Number . read <$> many1 digit
+
+parseList :: Parser LispVal
+parseList = List <$> sepBy parseExpr spaces
+
+parseDottedList :: Parser LispVal
+parseDottedList = do
+  head <- endBy parseExpr spaces
+  tail <- char '.' >> spaces >> parseExpr
+  return $ DottedList head tail
 
 parseExpr :: Parser LispVal
 parseExpr = parseAtom <|> parseString <|> parseNumber
