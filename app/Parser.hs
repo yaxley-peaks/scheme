@@ -1,8 +1,8 @@
 module Parser where
 
+import Control.Monad (liftM)
 import Data (LispVal (..))
 import Text.ParserCombinators.Parsec hiding (spaces)
-import Control.Monad (liftM)
 
 symbol :: Parser Char
 symbol = oneOf "!$ %&|*+ -/: <=? > @^_ ~#"
@@ -30,7 +30,10 @@ parseAtom = do
 parseNumber :: Parser LispVal
 parseNumber = Number . read <$> many1 digit
 
+parseExpr :: Parser LispVal
+parseExpr = parseAtom <|> parseString
+
 readExpr :: String -> String
-readExpr input = case parse (spaces >> symbol) "lisp" input of --lisp is just the name
+readExpr input = case parse parseExpr "lisp" input of --lisp is just the name
   Left err -> "No Match!: " ++ show err
   Right val -> "Found value"
