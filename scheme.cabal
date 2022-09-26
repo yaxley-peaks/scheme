@@ -27,6 +27,7 @@ executable scheme
   -- Modules included in this executable, other than Main.
   other-modules:
     Data
+    Error
     Etor
     Parser
 
