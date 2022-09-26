@@ -48,7 +48,10 @@ primitives =
     ("string<?", strBoolBinop (<)),
     ("string>?", strBoolBinop (>)),
     ("string<=?", strBoolBinop (<=)),
-    ("string>=?", strBoolBinop (>=))
+    ("string>=?", strBoolBinop (>=)),
+    ("car", car),
+    ("cdr", cdr),
+    ("cons", cons)
   ]
 
 boolBinOp :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
@@ -93,3 +96,9 @@ unpackStr notString = throwError $ TypeMismatch "string" notString
 unpackBool :: LispVal -> ThrowsError Bool
 unpackBool (Bool b) = return b
 unpackBool notBool = throwError $ TypeMismatch "boolean" notBool
+
+car :: [LispVal] -> ThrowsError LispVal
+car [List (x : xs)] = return x
+car [DottedList (x : xs) _] = return x
+car [badArg] = throwError $ TypeMismatch "pair" badArg
+car badArgList = throwError $ NumArgs 1 badArgList
