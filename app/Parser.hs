@@ -5,7 +5,7 @@ import Data (LispVal (..))
 import Text.ParserCombinators.Parsec hiding (spaces)
 
 symbol :: Parser Char
-symbol = oneOf "!$ %&|*+ -/: <=? > @^_ ~#"
+symbol = oneOf "!$%&|*+-/:<=>?@^_~#"
 
 spaces :: Parser ()
 spaces = skipMany1 space
@@ -58,14 +58,17 @@ parseQuoted = do
 
 parseExpr :: Parser LispVal
 parseExpr =
-  parseAtom <|> parseString <|> parseNumber <|> parseQuoted
+  parseAtom
+    <|> parseString
+    <|> parseNumber
+    <|> parseQuoted
     <|> do
       char '('
       x <- try parseList <|> parseDottedList
       char ')'
       return x
 
-readExpr :: String -> String
+readExpr :: String -> [Char]
 readExpr input = case parse parseExpr "lisp" input of --lisp is just the name
-  Left err -> "No Match!: " ++ show err
-  Right val -> "Found value"
+  Left err -> "No match: " ++ show err
+  Right val -> "Found val"
