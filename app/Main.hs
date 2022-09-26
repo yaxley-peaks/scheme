@@ -3,6 +3,10 @@ module Main where
 import Parser (readExpr)
 import System.Environment (getArgs)
 import Etor
+import Error (extractValue, trapError)
 
 main :: IO ()
-main = getArgs >>= print . eval . readExpr . (!! 0)
+main = do
+     args <- getArgs
+     let evaled = fmap show $ readExpr (head args) >>= eval
+     putStrLn $ extractValue $ trapError evaled

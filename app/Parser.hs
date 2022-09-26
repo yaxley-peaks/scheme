@@ -1,8 +1,11 @@
+{-# OPTIONS_GHC -Wno-deprecations #-}
 module Parser where
 
 import Control.Monad (liftM)
 import Data (LispVal (..))
 import Text.ParserCombinators.Parsec hiding (spaces)
+import Error (ThrowsError, LispError (..))
+import Control.Monad.Error (MonadError(throwError))
 
 symbol :: Parser Char
 symbol = oneOf "!$%&|*+-/:<=>?@^_~#"
@@ -68,7 +71,7 @@ parseExpr =
       char ')'
       return x
 
-readExpr :: String -> LispVal
+readExpr :: String -> ThrowsError LispVal
 readExpr input = case parse parseExpr "lisp" input of --lisp is just the name
-  Left err ->  String $ "No match: " ++ show err
-  Right val -> val
+  Left err ->  throwError (Parser err)
+  Right val -> return val
