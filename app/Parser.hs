@@ -68,7 +68,7 @@ parseExpr =
       char ')'
       return x
 
-readExpr :: String -> [Char]
+readExpr :: String -> LispVal
 readExpr input = case parse parseExpr "lisp" input of --lisp is just the name
-  Left err -> "No match: " ++ show err
-  Right val -> "Found: " ++ show val
+  Left err ->  String $ "No match: " ++ show err
+  Right val -> val

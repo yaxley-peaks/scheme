@@ -2,7 +2,7 @@ module Main where
 
 import Parser (readExpr)
 import System.Environment (getArgs)
+import Etor
 
-main = do
-  (arg:_) <- getArgs
-  putStrLn (readExpr arg)
+main :: IO ()
+main = getArgs >>= print . eval . readExpr . (!! 0)
