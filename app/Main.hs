@@ -4,5 +4,5 @@ import Parser (readExpr)
 import System.Environment (getArgs)
 
 main = do
-  args <- getArgs
-  putStrLn (readExpr (head args))
+  (arg:_) <- getArgs
+  putStrLn (readExpr arg)
