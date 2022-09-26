@@ -28,6 +28,9 @@ parseString =
         char '"'
         return $ String x
 
+parseList :: Parser LispVal
+parseList = List <$> sepBy parseExpr spaces
+
 parseAtom :: Parser LispVal
 parseAtom = do
   first <- letter <|> symbol
