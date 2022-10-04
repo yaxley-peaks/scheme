@@ -39,4 +39,15 @@ setVar envRef var value = do
     (lookup var env)
   return value
 
+defineVar :: Env -> String -> LispVal -> IOThrowsError LispVal
+defineVar envRef var value = do
+  alDef'd <- liftIO $ isBound envRef var
+  if alDef'd
+    then setVar envRef var value >> return value
+    else liftIO $ do
+      valueRef <- newIORef value
+      env <- readIORef envRef
+      writeIORef envRef ((var, valueRef) : env)
+      return value
+
 nullEnv = newIORef []
