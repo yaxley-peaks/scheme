@@ -7,12 +7,13 @@ module Etor where
 import Control.Monad.Error (MonadError (catchError, throwError))
 import Data (LispVal (..))
 import Error (LispError (BadSpecialForm, NotFunction, NumArgs, TypeMismatch), ThrowsError)
-import Vars (Env, IOThrowsError, defineVar, liftThrows, setVar)
+import Vars (Env, IOThrowsError, defineVar, getVar, liftThrows, setVar)
 
 eval :: Env -> LispVal -> IOThrowsError LispVal
 eval env val@(String _) = return val
 eval env val@(Number _) = return val
 eval env val@(Bool _) = return val
+eval env (Atom id) = getVar env id
 eval env (List [Atom "quote", val]) = return val
 eval env (List [Atom "if", pred, conseq, alt]) =
   do
