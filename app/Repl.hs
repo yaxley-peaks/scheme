@@ -1,11 +1,11 @@
 module Repl where
 
 import Control.Monad.Cont (liftM)
-import Error (extractValue, trapError)
+-- import Error (extractValue, trapError)
 import Etor (eval)
 import Parser (readExpr)
 import System.IO (hFlush, stdout)
-import Vars (Env, liftThrows, nullEnv, runIOThrows)
+import Data ( Env, liftThrows, runIOThrows, nullEnv )
 
 flushStr :: String -> IO ()
 flushStr s = putStr s >> hFlush stdout

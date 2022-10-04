@@ -1,6 +1,5 @@
 module Main where
 
-import Error (extractValue, trapError)
 import Etor
 import Parser (readExpr)
 import Repl (evalAndPrint, runOne, runRepl)

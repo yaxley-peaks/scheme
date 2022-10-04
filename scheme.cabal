@@ -27,11 +27,9 @@ executable scheme
   -- Modules included in this executable, other than Main.
   other-modules:
     Data
-    Error
     Etor
     Parser
     Repl
-    Vars
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:

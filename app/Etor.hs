@@ -5,9 +5,19 @@
 module Etor where
 
 import Control.Monad.Error (MonadError (catchError, throwError))
-import Data (LispVal (..))
-import Error (LispError (BadSpecialForm, NotFunction, NumArgs, TypeMismatch), ThrowsError)
-import Vars (Env, IOThrowsError, defineVar, getVar, liftThrows, setVar)
+import Data
+    ( LispVal(Bool, Number, String, Atom, DottedList, List),
+      ThrowsError,
+      LispError(NumArgs, BadSpecialForm, NotFunction, TypeMismatch),
+      IOThrowsError,
+      Env,
+      liftThrows,
+      getVar,
+      setVar,
+      defineVar )
+
+-- import Error (LispError (BadSpecialForm, NotFunction, NumArgs, TypeMismatch), ThrowsError)
+-- import Vars (Env, IOThrowsError, defineVar, getVar, liftThrows, setVar)
 
 eval :: Env -> LispVal -> IOThrowsError LispVal
 eval env val@(String _) = return val
