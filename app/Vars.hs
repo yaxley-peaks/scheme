@@ -4,7 +4,7 @@ module Vars where
 
 import Control.Monad.Error (ErrorT (runErrorT), MonadError (throwError), MonadIO (liftIO))
 import Data (LispVal)
-import Data.IORef (IORef, newIORef, readIORef)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Maybe (isJust)
 import Error (LispError (..), ThrowsError, extractValue, trapError)
 
@@ -30,6 +30,13 @@ getVar envRef var = do
     (liftIO . readIORef)
     (lookup var env)
 
-
+setVar :: Env -> String -> LispVal -> IOThrowsError LispVal
+setVar envRef var value = do
+  env <- liftIO $ readIORef envRef
+  maybe
+    (throwError $ UnboundVar "Setting an unbound variable" var)
+    (liftIO . flip writeIORef value)
+    (lookup var env)
+  return value
 
 nullEnv = newIORef []
