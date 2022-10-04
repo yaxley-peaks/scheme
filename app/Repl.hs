@@ -1,9 +1,11 @@
 module Repl where
 
+import Control.Monad.Cont (liftM)
 import Error (extractValue, trapError)
 import Etor (eval)
 import Parser (readExpr)
 import System.IO (hFlush, stdout)
+import Vars (Env, liftThrows, nullEnv, runIOThrows)
 
 flushStr :: String -> IO ()
 flushStr s = putStr s >> hFlush stdout
@@ -11,11 +13,11 @@ flushStr s = putStr s >> hFlush stdout
 readPrompt :: String -> IO String
 readPrompt p = flushStr p >> getLine
 
-evalString :: String -> IO String
-evalString expr = return $ extractValue $ trapError (fmap show $ readExpr expr >>= eval)
+evalString :: Env -> String -> IO String
+evalString env expr = runIOThrows $ fmap show $ liftThrows (readExpr expr) >>= eval env
 
-evalAndPrint :: String -> IO ()
-evalAndPrint expr = evalString expr >>= putStrLn
+evalAndPrint :: Env -> String -> IO ()
+evalAndPrint env expr = evalString env expr >>= putStrLn
 
 until_ :: Monad m => (a -> Bool) -> m a -> (a -> m ()) -> m ()
 until_ pred prompt action = do
@@ -23,4 +25,4 @@ until_ pred prompt action = do
   if pred result then return () else action result >> until_ pred prompt action
 
 runRepl :: IO ()
-runRepl = until_ (== "quit") (readPrompt "Lisp>>> ") evalAndPrint
+runRepl = nullEnv >>= until_ (== "quit") (readPrompt "Lisp>>> ") . evalAndPrint
