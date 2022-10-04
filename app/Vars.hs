@@ -25,6 +25,11 @@ isBound envRef var = isJust . lookup var <$> readIORef envRef
 getVar :: Env -> String -> IOThrowsError LispVal
 getVar envRef var = do
   env <- liftIO $ readIORef envRef
-  maybe (throwError $ UnboundVar "Getting an unbound variable" var) (liftIO . readIORef) (lookup var env)
+  maybe
+    (throwError $ UnboundVar "Getting an unbound variable" var)
+    (liftIO . readIORef)
+    (lookup var env)
+
+
 
 nullEnv = newIORef []
