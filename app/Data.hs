@@ -4,11 +4,14 @@
 module Data where
 
 import Control.Monad.Error
-    ( MonadError(..), Error(..), MonadIO(liftIO), ErrorT(runErrorT) )
-import Data.IORef ( IORef, newIORef, readIORef, writeIORef )
-import Data.Maybe ( isJust )
-import Text.Parsec ( ParseError )
-
+  ( Error (..),
+    ErrorT (runErrorT),
+    MonadError (..),
+    MonadIO (liftIO),
+  )
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Data.Maybe (isJust)
+import Text.Parsec (ParseError)
 
 data LispVal
   = Atom !String
@@ -35,6 +38,20 @@ showVal (Bool True) = "#t"
 showVal (Bool False) = "#f"
 showVal (List contents) = "(" ++ unwordsList contents ++ ")"
 showVal (DottedList head tail) = "(" ++ unwordsList head ++ "." ++ showVal tail
+showVal (PrimitiveFunc _) = "<primitive>"
+showVal
+  Func
+    { params = args,
+      vararg = varargs,
+      body = body,
+      closure = env
+    } =
+    "(lambda (" ++ unwords (map show args)
+      ++ ( case varargs of
+             Nothing -> ""
+             Just arg -> " . " ++ arg
+         )
+      ++ ")... )"
 
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
