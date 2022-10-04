@@ -13,3 +13,7 @@ readPrompt p = flushStr p >> getLine
 
 evalString :: String -> IO String
 evalString expr = return $ extractValue $ trapError (fmap show $ readExpr expr >>= eval)
+
+evalAndPrint :: String -> IO ()
+evalAndPrint expr = evalString expr >>= putStrLn
+
