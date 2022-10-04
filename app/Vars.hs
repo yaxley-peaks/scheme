@@ -58,5 +58,7 @@ bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
       ref <- newIORef value
       return (var, ref)
 
+
+
 nullEnv :: IO Env
 nullEnv = newIORef []
