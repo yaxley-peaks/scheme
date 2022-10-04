@@ -2,7 +2,7 @@
 
 module Vars where
 
-import Control.Monad.Error (ErrorT (runErrorT), MonadError (throwError), MonadIO (liftIO))
+import Control.Monad.Error (Error, ErrorT (runErrorT), MonadError (throwError), MonadIO (liftIO))
 import Data (LispVal)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Maybe (isJust)
@@ -50,4 +50,13 @@ defineVar envRef var value = do
       writeIORef envRef ((var, valueRef) : env)
       return value
 
+bindVars :: Env -> [(String, LispVal)] -> IO Env
+bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
+  where
+    extendEnv bindings env = (++ env) <$> mapM addBinding bindings
+    addBinding (var, value) = do
+      ref <- newIORef value
+      return (var, ref)
+
+nullEnv :: IO Env
 nullEnv = newIORef []
