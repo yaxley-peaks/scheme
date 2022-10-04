@@ -31,6 +31,7 @@ executable scheme
     Etor
     Parser
     Repl
+    Vars
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
