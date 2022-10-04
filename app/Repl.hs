@@ -26,3 +26,6 @@ until_ pred prompt action = do
 
 runRepl :: IO ()
 runRepl = nullEnv >>= until_ (== "quit") (readPrompt "Lisp>>> ") . evalAndPrint
+
+runOne :: String -> IO ()
+runOne expr = nullEnv >>= flip evalAndPrint expr
