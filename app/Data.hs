@@ -28,8 +28,6 @@ data LispVal
         closure :: !Env
       }
 
-instance Show LispVal where show = showVal
-
 showVal :: LispVal -> String
 showVal (String contents) = "\"" ++ contents ++ "\""
 showVal (Atom name) = name
@@ -55,6 +53,8 @@ showVal
 
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
+
+instance Show LispVal where show = showVal
 
 data LispError
   = NumArgs Integer [LispVal]
