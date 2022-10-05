@@ -39,7 +39,13 @@ eval env (List (Atom "define" : List (Atom var : params) : body)) =
   makeNormalFunc env params body >>= defineVar env var
 eval env (List (Atom "define" : DottedList (Atom var : params) varargs : body)) =
   makeVarargs varargs env params body >>= defineVar env var
--- eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
+eval env (List (Atom "lambda" : List params : body)) = makeNormalFunc env params body
+eval env (List (Atom "lambda" : DottedList params varargs : body)) = makeVarargs varargs env [] body
+eval env (List (Atom "lambda" : varargs@(Atom _) : body)) = makeVarargs varargs env [] body
+eval env (List (func : args)) = do
+  func <- eval env func
+  argVals <- mapM (eval env) args
+  apply func argVals
 eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 
 apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
