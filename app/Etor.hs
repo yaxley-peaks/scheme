@@ -4,20 +4,20 @@
 
 module Etor where
 
-import Control.Monad.Error (MonadError (catchError, throwError))
+import Control.Monad.Error (MonadError (catchError, throwError), MonadIO (liftIO))
 import Data
-    ( LispVal(Bool, Number, String, Atom, DottedList, List),
-      ThrowsError,
-      LispError(NumArgs, BadSpecialForm, NotFunction, TypeMismatch),
-      IOThrowsError,
-      Env,
-      liftThrows,
-      getVar,
-      setVar,
-      defineVar )
-
--- import Error (LispError (BadSpecialForm, NotFunction, NumArgs, TypeMismatch), ThrowsError)
--- import Vars (Env, IOThrowsError, defineVar, getVar, liftThrows, setVar)
+  ( Env,
+    IOThrowsError,
+    LispError (BadSpecialForm, NotFunction, NumArgs, TypeMismatch),
+    LispVal (..),
+    ThrowsError,
+    bindVars,
+    defineVar,
+    getVar,
+    liftThrows,
+    setVar,
+  )
+import Data.Maybe (isNothing)
 
 eval :: Env -> LispVal -> IOThrowsError LispVal
 eval env val@(String _) = return val
@@ -33,15 +33,22 @@ eval env (List [Atom "if", pred, conseq, alt]) =
       _ -> eval env conseq
 eval env (List [Atom "set!", Atom var, form]) = eval env form >>= setVar env var
 eval env (List [Atom "define", Atom var, form]) = eval env form >>= defineVar env var
-eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
+-- eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
 eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 
-apply :: String -> [LispVal] -> ThrowsError LispVal
-apply func args =
-  maybe
-    (throwError $ NotFunction "Unrecognized primitive function" func)
-    ($ args)
-    (lookup func primitives)
+apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
+apply (PrimitiveFunc func) args = liftThrows $ func args
+apply (Func params varargs body closure) args =
+  if num params /= num args && isNothing varargs
+    then throwError $ NumArgs (num params) args
+    else liftIO (bindVars closure $ zip params args) >>= bindVarArgs varargs >>= evalBody
+  where
+    remainingArgs = drop (length params) args
+    num = toInteger . length
+    evalBody env = last <$> mapM (eval env) body
+    bindVarArgs arg env = case arg of
+      Just argName -> liftIO $ bindVars env [(argName, List remainingArgs)]
+      Nothing -> return env
 
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 primitives =
