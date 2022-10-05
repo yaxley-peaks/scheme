@@ -4,7 +4,7 @@
 
 module Etor where
 
-import Control.Monad.Error (MonadError (catchError, throwError), MonadIO (liftIO))
+import Control.Monad.Error (Error, ErrorT, MonadError (catchError, throwError), MonadIO (liftIO))
 import Data
   ( Env,
     IOThrowsError,
@@ -17,6 +17,7 @@ import Data
     liftThrows,
     nullEnv,
     setVar,
+    showVal,
   )
 import Data.Maybe (isNothing)
 
@@ -34,6 +35,10 @@ eval env (List [Atom "if", pred, conseq, alt]) =
       _ -> eval env conseq
 eval env (List [Atom "set!", Atom var, form]) = eval env form >>= setVar env var
 eval env (List [Atom "define", Atom var, form]) = eval env form >>= defineVar env var
+eval env (List (Atom "define" : List (Atom var : params) : body)) =
+  makeNormalFunc env params body >>= defineVar env var
+eval env (List (Atom "define" : DottedList (Atom var : params) varargs : body)) =
+  makeVarargs varargs env params body >>= defineVar env var
 -- eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
 eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 
@@ -85,6 +90,15 @@ primitiveBindings :: IO Env
 primitiveBindings = nullEnv >>= flip bindVars (map makePrimitiveFunc primitives)
   where
     makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
+
+makeFunc :: Monad m => Maybe String -> Env -> [LispVal] -> [LispVal] -> m LispVal
+makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
+
+makeNormalFunc :: Env -> [LispVal] -> [LispVal] -> ErrorT LispError IO LispVal
+makeNormalFunc = makeFunc Nothing
+
+makeVarargs :: LispVal -> Env -> [LispVal] -> [LispVal] -> ErrorT LispError IO LispVal
+makeVarargs = makeFunc . Just . showVal
 
 boolBinOp :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
 boolBinOp unpacker op args =
