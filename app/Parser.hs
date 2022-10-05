@@ -3,22 +3,7 @@ module Parser where
 
 import Control.Monad (liftM)
 import Data (LispVal (..), ThrowsError, LispError (..))
-import Text.ParserCombinators.Parsec
-    ( char,
-      digit,
-      letter,
-      noneOf,
-      oneOf,
-      space,
-      endBy,
-      many1,
-      sepBy,
-      skipMany1,
-      (<|>),
-      many,
-      parse,
-      Parser,
-      try )
+import Text.ParserCombinators.Parsec hiding (spaces)
 import Control.Monad.Error (MonadError(throwError))
 
 symbol :: Parser Char
