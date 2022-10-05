@@ -15,6 +15,7 @@ import Data
     defineVar,
     getVar,
     liftThrows,
+    nullEnv,
     setVar,
   )
 import Data.Maybe (isNothing)
@@ -79,6 +80,11 @@ primitives =
     ("eq?", eqv),
     ("equal?", equal)
   ]
+
+primitiveBindings :: IO Env
+primitiveBindings = nullEnv >>= flip bindVars (map makePrimitiveFunc primitives)
+  where
+    makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
 
 boolBinOp :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
 boolBinOp unpacker op args =

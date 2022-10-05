@@ -2,10 +2,12 @@ module Repl where
 
 import Control.Monad.Cont (liftM)
 -- import Error (extractValue, trapError)
-import Etor (eval)
+-- import Error (extractValue, trapError)
+
+import Data (Env, liftThrows, nullEnv, runIOThrows)
+import Etor (eval, primitiveBindings)
 import Parser (readExpr)
 import System.IO (hFlush, stdout)
-import Data ( Env, liftThrows, runIOThrows, nullEnv )
 
 flushStr :: String -> IO ()
 flushStr s = putStr s >> hFlush stdout
@@ -25,7 +27,7 @@ until_ pred prompt action = do
   if pred result then return () else action result >> until_ pred prompt action
 
 runRepl :: IO ()
-runRepl = nullEnv >>= until_ (== "quit") (readPrompt "Lisp>>> ") . evalAndPrint
+runRepl = primitiveBindings >>= until_ (== "quit") (readPrompt "Lisp>>> ") . evalAndPrint
 
 runOne :: String -> IO ()
-runOne expr = nullEnv >>= flip evalAndPrint expr
+runOne expr = primitiveBindings >>= flip evalAndPrint expr
