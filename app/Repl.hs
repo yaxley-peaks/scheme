@@ -4,10 +4,12 @@ import Control.Monad.Cont (liftM)
 -- import Error (extractValue, trapError)
 -- import Error (extractValue, trapError)
 
-import Data (Env, liftThrows, nullEnv, runIOThrows)
-import Etor (eval, primitiveBindings)
-import Parser (readExpr)
-import System.IO (hFlush, stdout)
+-- import Error (extractValue, trapError)
+-- import Error (extractValue, trapError)
+import Data
+import Etor
+import Parser
+import System.IO
 
 flushStr :: String -> IO ()
 flushStr s = putStr s >> hFlush stdout
@@ -29,5 +31,8 @@ until_ pred prompt action = do
 runRepl :: IO ()
 runRepl = primitiveBindings >>= until_ (== "quit") (readPrompt "Lisp>>> ") . evalAndPrint
 
-runOne :: String -> IO ()
-runOne expr = primitiveBindings >>= flip evalAndPrint expr
+runOne :: [String] -> IO ()
+runOne args = do
+    env <- primitiveBindings >>= flip bindVars [("args", List $ map String $ drop 1 args)]
+    runIOThrows (show <$> eval env (List [Atom "load", String (head args)]))
+        >>= hPutStrLn stderr
