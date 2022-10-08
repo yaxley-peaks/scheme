@@ -11,6 +11,7 @@ import Control.Monad.Error
   )
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Maybe (isJust)
+import System.IO (Handle)
 import Text.Parsec (ParseError)
 
 data LispVal
@@ -27,6 +28,8 @@ data LispVal
         body :: ![LispVal],
         closure :: !Env
       }
+  | IOFunc ([LispVal] -> IOThrowsError LispVal)
+  | Port Handle
 
 showVal :: LispVal -> String
 showVal (String contents) = "\"" ++ contents ++ "\""
@@ -50,6 +53,8 @@ showVal
              Just arg -> " . " ++ arg
          )
       ++ ")... )"
+showVal (IOFunc _) = "<IO Primitive>"
+showVal (Port _) = "IO Port"
 
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
