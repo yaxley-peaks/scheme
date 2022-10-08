@@ -20,8 +20,8 @@ import Data
     showVal,
   )
 import Data.Maybe (isNothing)
-import System.IO
 import Parser (readExpr, readExprList)
+import System.IO
 
 eval :: Env -> LispVal -> IOThrowsError LispVal
 eval env val@(String _) = return val
@@ -44,6 +44,8 @@ eval env (List (Atom "define" : DottedList (Atom var : params) varargs : body)) 
 eval env (List (Atom "lambda" : List params : body)) = makeNormalFunc env params body
 eval env (List (Atom "lambda" : DottedList params varargs : body)) = makeVarargs varargs env [] body
 eval env (List (Atom "lambda" : varargs@(Atom _) : body)) = makeVarargs varargs env [] body
+eval env (List [Atom "load", String filename]) =
+  load filename >>= fmap last . mapM (eval env)
 eval env (List (func : args)) = do
   func <- eval env func
   argVals <- mapM (eval env) args
@@ -231,21 +233,21 @@ equal badArgList = throwError $ NumArgs 2 badArgList
 
 applyProc :: [LispVal] -> IOThrowsError LispVal
 applyProc [func, List args] = apply func args
-applyProc (func : args)     = apply func args
+applyProc (func : args) = apply func args
 
 makePort :: IOMode -> [LispVal] -> IOThrowsError LispVal
 makePort mode [String filename] = fmap Port $ liftIO $ openFile filename mode
 
 closePort :: [LispVal] -> IOThrowsError LispVal
 closePort [Port port] = liftIO $ hClose port >> return (Bool True)
-closePort _           = return $ Bool False
+closePort _ = return $ Bool False
 
 readProc :: [LispVal] -> IOThrowsError LispVal
-readProc []          = readProc [Port stdin]
+readProc [] = readProc [Port stdin]
 readProc [Port port] = liftIO (hGetLine port) >>= liftThrows . readExpr
 
 writeProc :: [LispVal] -> IOThrowsError LispVal
-writeProc [obj]            = writeProc [obj, Port stdout]
+writeProc [obj] = writeProc [obj, Port stdout]
 writeProc [obj, Port port] = liftIO $ hPrint port obj >> return (Bool True)
 
 readContents :: [LispVal] -> IOThrowsError LispVal
